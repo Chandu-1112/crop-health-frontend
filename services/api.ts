@@ -6,7 +6,7 @@ const TOKEN_KEY = "@crop_health_token";
 const TOKEN_TYPE_KEY = "@crop_health_token_type";
 const CACHE_PREFIX = "@crop_health_cache:";
 const TTL_CACHE_PREFIX = "@crop_health_ttl_cache:";
-const REQUEST_TIMEOUT_MS = 45000;
+const REQUEST_TIMEOUT_MS = 120000;
 
 const isCacheableGet = (endpoint: string, options: RequestInit) =>
   !options.method &&
@@ -53,6 +53,16 @@ export async function apiRequest(
       if (cached) {
         return JSON.parse(cached);
       }
+    }
+    if (
+      error &&
+      typeof error === "object" &&
+      "name" in error &&
+      error.name === "AbortError"
+    ) {
+      throw new Error(
+        "The request timed out while contacting the crop analysis service. Please try again."
+      );
     }
     throw error;
   } finally {
